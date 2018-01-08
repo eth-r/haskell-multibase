@@ -1,71 +1,210 @@
-module Multibase ( Base(..),
-                  appendPrefix,
-                  removePrefix,
-                  getPrefix,
-                  multiEncode,
-                  multiDecode
-                  ) where
+{-# LANGUAGE OverloadedStrings #-}
+module Multibase
+  ( Base(..)
+  , MultibaseError(..)
+  , addPrefix
+  , removePrefix
+  , getPrefix
+  , encode
+  , decode
+  , baseId
+  , base2
+  , base8
+  , base16
+  , base16'
+  , base32
+  , base32'
+  , base32pad
+  , base32pad'
+  , base32z
+  , base32hex
+  , base32hex'
+  , base32hexPad
+  , base32hexPad'
+  , base58btc
+  , base58flickr
+  , base64
+  , base64pad
+  , base64url
+  , base64urlPad
+  ) where
 
+import Data.Char
 import qualified Data.Word as W
-import qualified Data.ByteString as BStr
+import Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.Char8 as BStr
 import qualified Data.Map as M
 import MultibaseEncode
 
-data Base
-  = BaseID
-  | Base2
-  | Base8
-  | Base10
-  | Base16
-  | Base32
-  | Base32z
-  | Base32hex
-  | Base58btc
-  | Base58flickr
-  | Base64
-  | Base64URL
-  deriving (Eq, Ord, Show)
+data Base = Base
+  { basePrefix :: Char
+  , baseEncoder :: Encoder
+  , baseDecoder :: Decoder
+  }
 
-appendPrefix ::  Base -> BStr.ByteString -> BStr.ByteString
-appendPrefix a b =  BStr.append (BStr.pack $ snd $  fst $ (multibases M.! a)) b
+addPrefix :: Base -> ByteString -> ByteString
+addPrefix base bytes = BStr.cons (basePrefix base) bytes
 
-removePrefix :: BStr.ByteString -> BStr.ByteString
-removePrefix a = BStr.pack $ tail (BStr.unpack a)
+removePrefix :: ByteString -> Maybe ByteString
+removePrefix "" = Nothing
+removePrefix bytes = Just $ BStr.tail bytes
 
-getPrefix :: BStr.ByteString -> [W.Word8]
-getPrefix a = [head $ BStr.unpack a]
+getPrefix :: ByteString -> Maybe Char
+getPrefix "" = Nothing
+getPrefix bytes = Just $ BStr.head bytes
 
-multiEncode :: Base -> BStr.ByteString -> Bool -> BStr.ByteString
-multiEncode a b c =  appendPrefix a (encodeByteString b ( snd (multibases M.! a)) (fst $ fst (multibases M.! a)) c)
+encode :: Base -> ByteString -> ByteString
+encode base bytes =
+  addPrefix base $ encoder bytes
+  where
+    encoder = baseEncoder base
 
-multiDecode :: BStr.ByteString -> BStr.ByteString
-multiDecode a = decodeByteString (removePrefix a) (snd (multibases M.! (baseNumMap M.! (getPrefix a)))) (fst $ fst (multibases M.! (baseNumMap M.! (getPrefix a))))  0
+decode :: ByteString -> Result ByteString
+decode bytes =
+  decode' prefix encoded
+  where
+    prefix = getPrefix bytes
+    encoded = removePrefix bytes
 
-multibases :: M.Map Base ((BStr.ByteString , [W.Word8]), Integer)
-multibases = M.fromList [ (BaseID , (( word8Range ,   [0] ), 256 ))
-                        , (Base2,(( base2   , [48]) , 2))
-                        , (Base8,(( base8   , [55]) , 8))
-                        , (Base10,(( base10   , [57]) , 10))
-                        , (Base16,(( base16  , [102]) , 16))
-                        , (Base32,(( base32  , [98]) , 32))
-                        , (Base32z,(( base32z  , [104]) , 32))
-                        , (Base32hex,(( base32hex  , [118]) , 32 ))
-                        , (Base58btc,(( base58btc  , [122]) , 58))
-                        , (Base58flickr,(( base58flickr  , [91]) , 58 ))
-                        , (Base64,(( base64  , [109]) , 64))
-                        , (Base64URL , (( base64URL  , [117]) , 64))
-                        ]
+decode' :: Maybe Char -> Maybe ByteString -> Result ByteString
+decode' (Just prefix) (Just encoded) = do
+  case M.lookup prefix prefixBases of
+    Nothing -> Left UnknownBase
+    Just base ->
+      let decoder = baseDecoder base
+      in decoder encoded
+decode' _ _ = Left InputTooShort
 
-baseNumMap = M.fromList [([0] , BaseID)
-                        , ([48] , Base2)
-                        , ([55] , Base8)
-                        , ([57] , Base10)
-                        ,( [102] , Base16)
-                        , ([98] , Base32 )
-                        , ([104] , Base32z)
-                        ,( [118] , Base32hex)
-                        ,( [122] , Base58btc )
-                        ,( [91] , Base58flickr)
-                        , ([109] , Base64)
-                        ,( [117] , Base64URL)
-                        ]
+baseId, base2, base8, base16, base16' :: Base
+base32, base32', base32pad, base32pad' :: Base
+base32hex, base32hex', base32hexPad, base32hexPad' :: Base
+base32z, base58btc, base58flickr :: Base
+base64, base64pad, base64url, base64urlPad :: Base
+
+-- | The identity base, does not change contents
+baseId = Base '\000'
+  id
+  Right
+
+-- | Binary
+base2 = Base '0'
+  encodeBase2
+  decodeBase2
+
+-- | Octal
+base8 = Base '7'
+  encodeBase8
+  decodeBase8
+
+-- | Base 16 (lowercase)
+base16 = Base 'f'
+  encodeBase16
+  decodeBase16
+
+-- | Base 16 (uppercase)
+base16' = Base 'F'
+  (upperCase . encodeBase16)
+  decodeBase16
+
+-- | Base 32 (lowercase, unpadded)
+base32 = Base 'b'
+  encodeBase32LowercaseNoPad
+  decodeBase32
+
+-- | Base 32 (uppercase, unpadded)
+base32' = Base 'B'
+  encodeBase32NoPad
+  decodeBase32
+
+-- | Base 32 (lowercase, padded)
+base32pad = Base 'c'
+  encodeBase32Lowercase
+  decodeBase32
+
+-- | Base 32 (uppercase, padded)
+base32pad' = Base 'C'
+  encodeBase32
+  decodeBase32
+
+-- | Base 32hex (lowercase, unpadded)
+base32hex = Base 'v'
+  encodeBase32hexLowercaseNoPad
+  decodeBase32hex
+
+-- | Base 32hex (uppercase, unpadded)
+base32hex' = Base 'V'
+  encodeBase32hexNoPad
+  decodeBase32hex
+
+-- | Base 32hex (lowercase, padded)
+base32hexPad = Base 't'
+  encodeBase32hexLowercase
+  decodeBase32hex
+
+-- | Base 32hex (uppercase, padded)
+base32hexPad' = Base 'T'
+  encodeBase32hex
+  decodeBase32hex
+
+-- | z-base-32
+base32z = Base 'h'
+  encodeBase32z
+  decodeBase32z
+
+-- | Base 58 (Bitcoin encoding)
+base58btc = Base 'z'
+  encodeBase58btc
+  decodeBase58btc
+
+-- | Base 58 (Flickr encoding)
+base58flickr = Base 'Z'
+  encodeBase58flickr
+  decodeBase58flickr
+
+-- | Base 64 (unpadded)
+base64 = Base 'm'
+  (unpad . encodeBase64)
+  (decodeBase64 . repad 4)
+
+-- | Base 64 (padded)
+base64pad = Base 'M'
+  encodeBase64
+  decodeBase64
+
+-- | Base 64url (unpadded)
+base64url = Base 'u'
+  (unpad . encodeBase64URL)
+  (decodeBase64URL . repad 4)
+
+-- | Base 64url (padded)
+base64urlPad = Base 'U'
+  encodeBase64URL
+  decodeBase64URL
+
+bases =
+  [ baseId
+  , base2
+  , base8
+  , base16
+  , base16'
+  , base32
+  , base32'
+  , base32pad
+  , base32pad'
+  , base32z
+  , base32hex
+  , base32hex'
+  , base32hexPad
+  , base32hexPad'
+  , base58btc
+  , base58flickr
+  , base64
+  , base64pad
+  , base64url
+  , base64urlPad
+  ]
+
+getBasePrefix :: Base -> (Char, Base)
+getBasePrefix base = (basePrefix base, base)
+
+prefixBases = M.fromList $ map getBasePrefix bases
