@@ -7,7 +7,7 @@ module Multibase
   , getPrefix
   , encode
   , decode
-  , baseId
+  , identity
   , base2
   , base8
   , base16
@@ -19,14 +19,14 @@ module Multibase
   , base32z
   , base32hex
   , base32hex'
-  , base32hexPad
-  , base32hexPad'
+  , base32hexpad
+  , base32hexpad'
   , base58btc
   , base58flickr
   , base64
   , base64pad
   , base64url
-  , base64urlPad
+  , base64urlpad
   ) where
 
 import Data.Char
@@ -75,14 +75,14 @@ decode' (Just prefix) (Just encoded) = do
       in decoder encoded
 decode' _ _ = Left InputTooShort
 
-baseId, base2, base8, base16, base16' :: Base
+identity, base2, base8, base16, base16' :: Base
 base32, base32', base32pad, base32pad' :: Base
-base32hex, base32hex', base32hexPad, base32hexPad' :: Base
+base32hex, base32hex', base32hexpad, base32hexpad' :: Base
 base32z, base58btc, base58flickr :: Base
-base64, base64pad, base64url, base64urlPad :: Base
+base64, base64pad, base64url, base64urlpad :: Base
 
 -- | The identity base, does not change contents
-baseId = Base '\000'
+identity = Base '\000'
   id
   Right
 
@@ -137,12 +137,12 @@ base32hex' = Base 'V'
   decodeBase32hex
 
 -- | Base 32hex (lowercase, padded)
-base32hexPad = Base 't'
+base32hexpad = Base 't'
   encodeBase32hexLowercase
   decodeBase32hex
 
 -- | Base 32hex (uppercase, padded)
-base32hexPad' = Base 'T'
+base32hexpad' = Base 'T'
   encodeBase32hex
   decodeBase32hex
 
@@ -177,12 +177,12 @@ base64url = Base 'u'
   (decodeBase64URL . repad 4)
 
 -- | Base 64url (padded)
-base64urlPad = Base 'U'
+base64urlpad = Base 'U'
   encodeBase64URL
   decodeBase64URL
 
 bases =
-  [ baseId
+  [ identity
   , base2
   , base8
   , base16
@@ -194,14 +194,14 @@ bases =
   , base32z
   , base32hex
   , base32hex'
-  , base32hexPad
-  , base32hexPad'
+  , base32hexpad
+  , base32hexpad'
   , base58btc
   , base58flickr
   , base64
   , base64pad
   , base64url
-  , base64urlPad
+  , base64urlpad
   ]
 
 getBasePrefix :: Base -> (Char, Base)
