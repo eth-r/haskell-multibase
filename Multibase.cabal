@@ -52,10 +52,10 @@ cabal-version:       >=1.10
 
 library
   -- Modules exported by the library.
-  exposed-modules:     Multibase, MultibaseOld
+  exposed-modules:     Multibase
 
   -- Modules included in this library but not exported.
-  other-modules:       MultibaseEncode, MultibaseEncodeOld
+  other-modules:       MultibaseEncode
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
@@ -66,7 +66,6 @@ library
                      , base32-bytestring >=0.2.2 && <0.3
                      , base58-bytestring >=0.1 && <0.2
                      , base64-bytestring
-                     , bits-extras >0.1 && <0.2
                      , bytestring >=0.10 && <0.11
                      , containers >=0.5 && <0.6
 
