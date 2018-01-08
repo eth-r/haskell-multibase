@@ -37,9 +37,9 @@ resolver: lts-10.2
 # will not be run. This is useful for tweaking upstream packages.
 packages:
   - .
-  - location: ../base32-bytestring
-      # git: https://github.com/eth-r/base32-bytestring.git
-      # commit: 6c0150fc6b3dcabbbe8aaadebb5ea6404d835acb
+  - location:
+      git: https://github.com/eth-r/base32-bytestring.git
+      commit: 546484b6749afda7d94257096dbfe5b3bd1f2401
     extra-dep: true
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
