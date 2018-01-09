@@ -273,6 +273,20 @@ main = hspec $ do
       "uAAB5ZXMgbWFuaSAh" `decodesTo` test5
       "UAAB5ZXMgbWFuaSAh" `decodesTo` test5
 
+    context "mixed case" $ do
+      let test3 = "hello world"
+
+      "f68656c6c6f20776F726C64" `decodesTo` test3
+      "F68656c6c6f20776F726C64" `decodesTo` test3
+      "bnbswy3dpeB3W64TMMQ" `decodesTo` test3
+      "Bnbswy3dpeB3W64TMMQ" `decodesTo` test3
+      "vd1imor3f41RMUSJCCG" `decodesTo` test3
+      "Vd1imor3f41RMUSJCCG" `decodesTo` test3
+      "cnbswy3dpeB3W64TMMQ======" `decodesTo` test3
+      "Cnbswy3dpeB3W64TMMQ======" `decodesTo` test3
+      "td1imor3f41RMUSJCCG======" `decodesTo` test3
+      "Td1imoR3f41RMUSJCCG======" `decodesTo` test3
+
     it "fails on unknown bases" $ do
       decode "L1111" `shouldBe` Left UnknownBase
       decode "X1111" `shouldBe` Left UnknownBase

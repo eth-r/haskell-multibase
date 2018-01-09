@@ -38,8 +38,8 @@ import MultibaseEncode
 
 data Base = Base
   { basePrefix :: Char
-  , baseEncoder :: Encoder
-  , baseDecoder :: Decoder
+  , baseEncode :: Encoder
+  , baseDecode :: Decoder
   }
 
 addPrefix :: Base -> ByteString -> ByteString
@@ -54,10 +54,7 @@ getPrefix "" = Nothing
 getPrefix bytes = Just $ BStr.head bytes
 
 encode :: Base -> ByteString -> ByteString
-encode base bytes =
-  addPrefix base $ encoder bytes
-  where
-    encoder = baseEncoder base
+encode base bytes = addPrefix base $ baseEncode base bytes
 
 decode :: ByteString -> Result ByteString
 decode bytes =
@@ -70,9 +67,7 @@ decode' :: Maybe Char -> Maybe ByteString -> Result ByteString
 decode' (Just prefix) (Just encoded) = do
   case M.lookup prefix prefixBases of
     Nothing -> Left UnknownBase
-    Just base ->
-      let decoder = baseDecoder base
-      in decoder encoded
+    Just base -> baseDecode base encoded
 decode' _ _ = Left InputTooShort
 
 identity, base2, base8, base16, base16' :: Base
