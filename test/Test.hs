@@ -31,7 +31,7 @@ roundtrips base baseName =
   decode (encode base bstr) `shouldBe` Right bstr
 
 main :: IO ()
-main = hspec $ do
+main = hspec $ modifyMaxSuccess (const 10000) $ do
 
   describe "encode" $ do
 
@@ -40,6 +40,7 @@ main = hspec $ do
 
       encodes "base2" base2 test1 "001000100011001010110001101100101011011100111010001110010011000010110110001101001011110100110010100100000011001010111011001100101011100100111100101110100011010000110100101101110011001110010000100100001"
       encodes "base8" base8 test1 "71043126154533472162302661513646244031273145344745643206455631620441"
+      encodes "base10" base10 test1 "9429328951066508984658627669258025763026247056774804621697313"
       encodes "base16" base16 test1 "f446563656e7472616c697a652065766572797468696e672121"
       encodes "BASE16" base16' test1 "F446563656E7472616C697A652065766572797468696E672121"
       encodes "base32" base32 test1 "birswgzloorzgc3djpjssazlwmvzhs5dinfxgoijb"
@@ -63,6 +64,7 @@ main = hspec $ do
 
       encodes "base2" base2 test2 "001111001011001010111001100100000011011010110000101101110011010010010000000100001"
       encodes "base8" base8 test2 "7171312714403326055632220041"
+      encodes "base10" base10 test2 "9573277761329450583662625"
       encodes "base16" base16 test2 "f796573206d616e692021"
       encodes "BASE16" base16' test2 "F796573206D616E692021"
       encodes "base32" base32 test2 "bpfsxgidnmfxgsibb"
@@ -86,6 +88,7 @@ main = hspec $ do
 
       encodes "base2" base2 test3 "00110100001100101011011000110110001101111001000000111011101101111011100100110110001100100"
       encodes "base8" base8 test3 "7064145330661571007355734466144"
+      encodes "base10" base10 test3 "9126207244316550804821666916"
       encodes "base16" base16 test3 "f68656c6c6f20776f726c64"
       encodes "BASE16" base16' test3 "F68656C6C6F20776F726C64"
       encodes "base32" base32 test3 "bnbswy3dpeb3w64tmmq"
@@ -109,6 +112,7 @@ main = hspec $ do
 
       encodes "base2" base2 test4 "00000000001111001011001010111001100100000011011010110000101101110011010010010000000100001"
       encodes "base8" base8 test4 "7000171312714403326055632220041"
+      encodes "base10" base10 test4 "90573277761329450583662625"
       encodes "base16" base16 test4 "f00796573206d616e692021"
       encodes "BASE16" base16' test4 "F00796573206D616E692021"
       encodes "base32" base32 test4 "bab4wk4zanvqw42jaee"
@@ -132,6 +136,7 @@ main = hspec $ do
 
       encodes "base2" base2 test5 "0000000000000000001111001011001010111001100100000011011010110000101101110011010010010000000100001"
       encodes "base8" base8 test5 "700000171312714403326055632220041"
+      encodes "base10" base10 test5 "900573277761329450583662625"
       encodes "base16" base16 test5 "f0000796573206d616e692021"
       encodes "BASE16" base16' test5 "F0000796573206D616E692021"
       encodes "base32" base32 test5 "baaahszltebwwc3tjeaqq"
@@ -159,6 +164,7 @@ main = hspec $ do
         `decodesTo` test1
       "71043126154533472162302661513646244031273145344745643206455631620441"
         `decodesTo` test1
+      "9429328951066508984658627669258025763026247056774804621697313" `decodesTo` test1
       "f446563656e7472616c697a652065766572797468696e672121" `decodesTo` test1
       "F446563656E7472616C697A652065766572797468696E672121" `decodesTo` test1
       "birswgzloorzgc3djpjssazlwmvzhs5dinfxgoijb" `decodesTo` test1
@@ -183,6 +189,7 @@ main = hspec $ do
       "001111001011001010111001100100000011011010110000101101110011010010010000000100001"
         `decodesTo` test2
       "7171312714403326055632220041" `decodesTo` test2
+      "9573277761329450583662625" `decodesTo` test2
       "f796573206d616e692021" `decodesTo` test2
       "F796573206D616E692021" `decodesTo` test2
       "bpfsxgidnmfxgsibb" `decodesTo` test2
@@ -207,6 +214,7 @@ main = hspec $ do
       "00110100001100101011011000110110001101111001000000111011101101111011100100110110001100100"
         `decodesTo` test3
       "7064145330661571007355734466144" `decodesTo` test3
+      "9126207244316550804821666916" `decodesTo` test3
       "f68656c6c6f20776f726c64" `decodesTo` test3
       "F68656C6C6F20776F726C64" `decodesTo` test3
       "bnbswy3dpeb3w64tmmq" `decodesTo` test3
@@ -231,6 +239,7 @@ main = hspec $ do
       "00000000001111001011001010111001100100000011011010110000101101110011010010010000000100001"
         `decodesTo` test4
       "7000171312714403326055632220041" `decodesTo` test4
+      "90573277761329450583662625" `decodesTo` test4
       "f00796573206d616e692021" `decodesTo` test4
       "F00796573206D616E692021" `decodesTo` test4
       "bab4wk4zanvqw42jaee" `decodesTo` test4
@@ -255,6 +264,7 @@ main = hspec $ do
       "0000000000000000001111001011001010111001100100000011011010110000101101110011010010010000000100001"
         `decodesTo` test5
       "700000171312714403326055632220041" `decodesTo` test5
+      "900573277761329450583662625" `decodesTo` test5
       "f0000796573206d616e692021" `decodesTo` test5
       "F0000796573206D616E692021" `decodesTo` test5
       "baaahszltebwwc3tjeaqq" `decodesTo` test5
@@ -287,6 +297,18 @@ main = hspec $ do
       "td1imor3f41RMUSJCCG======" `decodesTo` test3
       "Td1imoR3f41RMUSJCCG======" `decodesTo` test3
 
+    describe "base 10" $ do
+      encodes "base 10" base10 "\x01" "91"
+      encodes "base 10" base10 "\x00\x01" "901"
+      encodes "base 10" base10 "\x00\x00\xff" "900255"
+      encodes "base 10" base10 "\x01\x00" "9256"
+      encodes "base 10" base10 "\x00\x01\x00" "90256"
+      "91" `decodesTo` "\x01"
+      "901" `decodesTo` "\x00\x01"
+      "900255" `decodesTo` "\x00\x00\xff"
+      "9256" `decodesTo` "\x01\x00"
+      "90256" `decodesTo` "\x00\x01\x00"
+
     it "fails on unknown bases" $ do
       decode "L1111" `shouldBe` Left UnknownBase
       decode "X1111" `shouldBe` Left UnknownBase
@@ -299,6 +321,7 @@ main = hspec $ do
     roundtrips identity "baseId"
     roundtrips base2 "base2"
     roundtrips base8 "base8"
+    roundtrips base10 "base10"
     roundtrips base16 "base16"
     roundtrips base16' "base16 uppercase"
     roundtrips base32 "base32"

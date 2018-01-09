@@ -1,5 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Data.ByteString.Multibase.Encode where
+
+import Control.DeepSeq
+import GHC.Generics
 
 import Data.Bits ((.|.), (.&.))
 import qualified Data.Bits       as Bin
@@ -28,7 +33,7 @@ data MultibaseError
   = UnknownBase
   | InvalidBaseString
   | InputTooShort
-  deriving (Eq, Show)
+  deriving (Eq, Generic, Show, NFData)
 
 unMaybe :: Maybe ByteString -> Either MultibaseError ByteString
 unMaybe Nothing = Left InvalidBaseString
@@ -279,6 +284,53 @@ fromBit _ = '1'
 -- word8ListToIntegerList :: [W.Word8] -> [Integer]
 -- word8ListToIntegerList  = map toInteger
 
+encodeBase10 :: Encoder
+encodeBase10 bytes = C.append (leadingNulls bytes '0') $ toBase10 bytes
+
+leadingNulls :: ByteString -> Char -> ByteString
+leadingNulls bytes char = C.replicate len char
+  where len = BStr.length $ BStr.takeWhile (== 0x00) bytes
+
+toBase10 :: Encoder
+toBase10 = integerToDec . bytesToInteger
+
+bytesToInteger :: ByteString -> Integer
+bytesToInteger bytes = BStr.foldl' (\acc b -> acc * 256 + fromIntegral b) 0 bytes
+
+integerToDec :: Integer -> ByteString
+integerToDec i = BStr.pack $ integerToDec' i []
+
+integerToDec' :: Integer -> [W.Word8] -> [W.Word8]
+integerToDec' 0 acc = acc
+integerToDec' i acc = integerToDec' i' (c : acc)
+  where
+    (i', r) = i `quotRem` 10
+    c = fromIntegral $ r + 48
+
+decodeBase10 :: Decoder
+decodeBase10 bytes = C.append (leadingZeros bytes) <$> fromBase10 bytes
+
+leadingZeros :: ByteString -> ByteString
+leadingZeros bytes = BStr.replicate len 0x00
+  where len = C.length $ C.takeWhile (== '0') bytes
+
+fromBase10 :: Decoder
+fromBase10 bytes
+  | C.any (\c -> not $ c `C.elem` b10) bytes = Left InvalidBaseString
+  | otherwise = Right $ integerToBytes $ decToInteger bytes
+
+decToInteger :: ByteString -> Integer
+decToInteger bytes = BStr.foldl' (\acc b -> acc * 10 + fromIntegral (b - 48)) 0 bytes
+
+integerToBytes :: Integer -> ByteString
+integerToBytes i = BStr.pack $ integerToBytes' i []
+
+integerToBytes' :: Integer -> [W.Word8] -> [W.Word8]
+integerToBytes' 0 acc = acc
+integerToBytes' i acc = integerToBytes' i' (fromIntegral r : acc)
+  where
+    (i', r) = i `quotRem` 256
+
 
 
 -- integerListToWord8List :: [Integer] -> [W.Word8]
@@ -308,7 +360,7 @@ fromBit _ = '1'
 
 b8  = C.pack ['0'..'7']
 
--- b10 = C.pack ['0'..'9']
+b10 = C.pack ['0'..'9']
 
 -- b16 = C.pack $ ['0'..'9'] ++ ['a'..'f']
 -- b16U = C.pack $ ['0'..'9'] ++ ['A'..'F']
