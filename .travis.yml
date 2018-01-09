@@ -8,9 +8,10 @@ ghc:
   - "7.6"
   - "7.4"
 
+before_install:
+  git clone https://github.com/eth-r/base32-bytestring ../b32 && cabal install ../b32
+
 install:
-  git clone https://github.com/eth-r/base32-bytestring ../b32
-  cabal install ../b32
   cabal install --only-dependencies --enable-tests
 
 script:
