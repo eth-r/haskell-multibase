@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module MultibaseEncode where
+module Data.ByteString.Multibase.Encode where
 
 import Data.Bits ((.|.), (.&.))
 import qualified Data.Bits       as Bin

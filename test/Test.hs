@@ -5,7 +5,7 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
-import Multibase
+import Data.ByteString.Multibase
 
 instance Arbitrary ByteString where
   arbitrary = pack <$> arbitrary

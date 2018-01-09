@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Multibase
+module Data.ByteString.Multibase
   ( Base(..)
   , MultibaseError(..)
   , addPrefix
@@ -34,7 +34,7 @@ import qualified Data.Word as W
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BStr
 import qualified Data.Map as M
-import MultibaseEncode
+import Data.ByteString.Multibase.Encode
 
 data Base = Base
   { basePrefix :: Char
