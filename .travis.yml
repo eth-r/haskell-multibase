@@ -1,7 +1,15 @@
 language: haskell
 
+ghc:
+  - "8.2"
+  - "8.0"
+  - "7.10"
+  - "7.8"
+  - "7.6"
+  - "7.4"
+
 install:
-  - stack setup
+  - cabal install --only-dependencies --enable-tests
 
 script:
-  - stack test
+  - cabal configure && cabal build && cabal test
